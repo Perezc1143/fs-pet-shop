@@ -17,12 +17,17 @@ app.use(morgan('tiny'));
 //handle request with routes
 //post
 app.post("/pets", (req,res) =>{
-    const {pet} = req.params;
-    pool.query('INSERT INTO pets WHERE $1, $2, $3', ['name','kind',age], (err,data)=>{
-        console.log()
-    }
+    const pet = req.body;
+    pool.query('INSERT INTO pets (name, kind, age) VALUES($1, $2, $3);', [pet.name, pet.kind, pet.age], (err,data) => {
+        if(err){
+            res.status(404);
+            }else{
+            res.json(pet);
+            }
+        })
+    });
+        
     
-});
 
 //get request 
 app.get("/pets/:petId", (req,res) => {
@@ -40,34 +45,35 @@ app.get("/pets/:petId", (req,res) => {
 
 //patch
 
-app.patch("/pets/3:pets_name", (req,res) => {
-    db('pets').update({"name":"Fido"});
-    res.status(200);
-    res.append("Content-Type", 'application/json');
-    res.send(req.body);
+app.put("/pets/:petId", (req,res) => {
+    const { petId } = req.params;
+    const pet = req.body;
+    pool.query('UPDATE pets SET name=$1, kind=$2, age=$3 WHERE id=$4', [pet.name, pet.kind, pet.age, petId], (err,data) => {
+        if(err){
+            console.log('err',err)
+            res.status(404);
+        }else{
+            res.json(data.rows)
+        }
+    })
 });
 
 //get
-app.get('/pets/3', (req,res) => {
-    res.status(200);
-    res.append('Contnent-Type', 'application/json');
-    res.send(req.body);
-});
+
 
 //delete
-app.delete('/pets/3', (req,res) => {
-    res.status(200);
-    res.append('Contnent-Type', 'application/json');
-    res.send(req.body);
+app.delete('/pets/:petId', (req,res) => {
+    const { petId } = req.params;
+   pool.query('DELETE FROM pets WHERE id=$1', [petId], (err,data) =>{
+       if(err){
+           res.status(404);
+       }else{
+            res.json(data.rows);
+       }
+   })
 });
 
-//get 
-app.get('/pets/3', (req,res) => {
-    res.status(404);
-    res.append("Contect-Type", "text/plain");
-
-})
-            
+     
 
    
 
